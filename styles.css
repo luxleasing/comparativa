@@ -43,12 +43,10 @@ body {
   color: var(--text-primary);
   transition: background 0.25s ease, color 0.25s ease;
 }
-button, input, select {
-  font-family: var(--font-ui) !important;
-}
+button, input, select { font-family: var(--font-ui) !important; }
 
 /* ══════════════════════════════════════════════════════════════════
-   HEADER · mismo naranja en claro y oscuro
+   HEADER
    ══════════════════════════════════════════════════════════════════ */
 #main-header {
   background: linear-gradient(98deg, #E5660B 0%, #FA7313 45%, #F98634 100%);
@@ -137,9 +135,7 @@ html.dark .kpi-card-after {
   line-height: 1; letter-spacing: -0.02em;
   color: var(--text-primary);
 }
-.kpi-card-after .kpi-total-num {
-  color: var(--cyan);
-}
+.kpi-card-after .kpi-total-num { color: var(--cyan); }
 .kpi-total-label {
   font-size: 10px; font-weight: 500;
   color: var(--text-muted);
@@ -176,10 +172,36 @@ html.dark .kpi-bar { background: rgba(0,0,0,0.4); }
   white-space: nowrap;
   color: var(--text-primary);
 }
-/* Colores por tecnología en los valores de % */
 .kpi-val-led    { color: var(--cyan); }
 .kpi-val-sodio  { color: var(--yellow); }
 .kpi-val-otros  { color: var(--peach); }
+
+.kpi-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 8px;
+  margin-top: 2px;
+  border-top: 1px dashed var(--border-card);
+}
+.kpi-meta-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  gap: 8px;
+  font-size: 10px;
+  line-height: 1.3;
+}
+.kpi-meta-label {
+  color: var(--text-muted);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.kpi-meta-hint { font-size: 9px; opacity: 0.7; }
+.kpi-meta-value {
+  color: var(--text-secondary);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
 
 .kpi-arrow {
   display: flex; align-items: center; justify-content: center;
@@ -196,7 +218,7 @@ html.dark .kpi-bar { background: rgba(0,0,0,0.4); }
 .dot.sm { width: 7px; height: 7px; }
 
 /* ══════════════════════════════════════════════════════════════════
-   MAPA + SWIPE
+   MAPA + SWIPE ADAPTATIVO
    ══════════════════════════════════════════════════════════════════ */
 #comparison-container {
   position: relative;
@@ -213,57 +235,92 @@ html.dark #comparison-container { background: #0f172a; }
 }
 #map-2026 { z-index: 1; }
 #map-2021 { z-index: 2; }
-.map-pane-clipped { clip-path: inset(0 50% 0 0); }
-
-/* Solo el mapa de fondo (2026) recibe interacción. El de arriba no, para que el divisor funcione. */
 #map-2021 .maplibregl-canvas { pointer-events: none; }
 
+/* ── Divisor (base: se ajusta por clases .orientation-v / .orientation-h) ── */
 #swipe-divider {
   position: absolute;
-  top: 0; bottom: 0;
-  left: 50%;
-  width: 3px;
-  margin-left: -1.5px;
   z-index: 10;
-  cursor: ew-resize;
   touch-action: none;
   user-select: none;
   outline: none;
 }
-.swipe-line {
+
+/* Orientación VERTICAL (desktop / landscape) — divisor es una línea vertical */
+#comparison-container.orientation-v #swipe-divider {
+  top: 0; bottom: 0;
+  left: 50%;
+  width: 3px;
+  margin-left: -1.5px;
+  height: auto;
+  margin-top: 0;
+  cursor: ew-resize;
+}
+#comparison-container.orientation-v .swipe-line {
   position: absolute;
   top: 0; bottom: 0; left: 0;
-  width: 3px;
+  width: 3px; height: auto;
+}
+#comparison-container.orientation-v .swipe-handle { cursor: ew-resize; }
+
+/* Orientación HORIZONTAL (mobile / portrait) — divisor es una línea horizontal */
+#comparison-container.orientation-h #swipe-divider {
+  left: 0; right: 0;
+  top: 50%;
+  height: 3px;
+  margin-top: -1.5px;
+  width: auto;
+  margin-left: 0;
+  cursor: ns-resize;
+}
+#comparison-container.orientation-h .swipe-line {
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 3px; width: auto;
+}
+#comparison-container.orientation-h .swipe-handle { cursor: ns-resize; }
+
+/* ── Línea ── */
+.swipe-line {
   background: #ffffff;
   box-shadow: 0 0 12px rgba(0,0,0,0.5), 0 0 3px rgba(255,255,255,0.9);
 }
+
+/* ── Handle (botón) ── */
 .swipe-handle {
   position: absolute;
-  top: 50%; left: 50%;
+  left: 50%; top: 50%;
   transform: translate(-50%, -50%);
-  width: 44px; height: 44px;
+  width: 64px; height: 64px;
   border-radius: 50%;
   background: #ffffff;
   color: #0f172a;
   border: 3px solid rgba(0,0,0,0.15);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.5), 0 0 0 2px rgba(255,255,255,0.4);
   display: flex; align-items: center; justify-content: center;
-  cursor: ew-resize;
   padding: 0;
-  transition: transform 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
-.swipe-handle:hover { transform: translate(-50%, -50%) scale(1.08); }
+.swipe-handle:hover {
+  transform: translate(-50%, -50%) scale(1.08);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.55), 0 0 0 3px rgba(34,211,238,0.5);
+}
 .swipe-handle:active { transform: translate(-50%, -50%) scale(0.96); }
 #swipe-divider:focus-visible .swipe-handle {
-  box-shadow: 0 0 0 4px var(--cyan), 0 4px 20px rgba(0,0,0,0.4);
+  box-shadow: 0 0 0 4px var(--cyan), 0 6px 24px rgba(0,0,0,0.5);
 }
+/* Íconos distintos según orientación */
+.swipe-handle .icon-v { display: none; }
+.swipe-handle .icon-h { display: block; }
+#comparison-container.orientation-v .swipe-handle .icon-v { display: block; }
+#comparison-container.orientation-v .swipe-handle .icon-h { display: none; }
 
+/* ── Badges de año (se reubican según orientación) ── */
 .year-badge {
   position: absolute;
-  top: 14px;
   z-index: 20;
   display: flex; align-items: center; gap: 7px;
-  background: rgba(0,0,0,0.72);
+  background: rgba(0,0,0,0.78);
   color: #fff;
   font-size: 12px; font-weight: 700;
   letter-spacing: 0.10em;
@@ -274,32 +331,49 @@ html.dark #comparison-container { background: #0f172a; }
   box-shadow: 0 4px 14px rgba(0,0,0,0.35);
 }
 .year-dot { width: 8px; height: 8px; border-radius: 50%; }
-.year-badge-left { left: 14px; }
-.year-badge-right { right: 14px; }
 
+/* Vertical: badge 2021 izquierda, 2026 derecha */
+#comparison-container.orientation-v .year-badge-top    { top: 14px; left: 14px; bottom: auto; right: auto; }
+#comparison-container.orientation-v .year-badge-bottom { top: 14px; right: 14px; left: auto; bottom: auto; }
+
+/* Horizontal: badge 2021 arriba, 2026 abajo */
+#comparison-container.orientation-h .year-badge-top    { top: 14px; left: 14px; }
+#comparison-container.orientation-h .year-badge-bottom { bottom: 14px; left: 14px; top: auto; }
+
+/* ── Hint (persistente hasta interacción) ── */
 .swipe-hint {
   position: absolute;
-  top: 50%; left: 50%;
+  left: 50%; top: 50%;
   transform: translate(-50%, -50%);
   z-index: 15;
-  display: flex; align-items: center; gap: 8px;
-  background: rgba(0,0,0,0.78);
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(0,0,0,0.85);
   color: #fff;
-  font-size: 11px; font-weight: 600;
-  padding: 8px 14px;
+  font-size: 13px; font-weight: 600;
+  padding: 12px 20px;
   border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.25);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
   pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  animation: hintFloat 2s ease-in-out infinite;
+}
+.swipe-hint.fade-out {
   opacity: 0;
-  animation: hintPulse 3s ease-in-out 1.2s 1;
-  transition: opacity 0.4s ease;
+  transform: translate(-50%, -60%);
+  animation: none;
 }
-.swipe-hint.fade-out { opacity: 0 !important; animation: none; }
-@keyframes hintPulse {
-  0%, 100% { opacity: 0; }
-  15%, 85% { opacity: 1; }
+@keyframes hintFloat {
+  0%, 100% { transform: translate(-50%, -50%); }
+  50%      { transform: translate(-50%, -56%); }
 }
+.swipe-hint .icon-v { display: none; }
+.swipe-hint .icon-h { display: block; }
+#comparison-container.orientation-v .swipe-hint .icon-v { display: block; }
+#comparison-container.orientation-v .swipe-hint .icon-h { display: none; }
 
+/* ── Leyenda ── */
 .legend-box {
   background: rgba(255,255,255,0.92);
   border: 1px solid rgba(0,0,0,0.08);
@@ -341,6 +415,9 @@ html.dark .legend-box {
   .kpi-arrow { display: none; }
   .kpi-total-num { font-size: 24px; }
   .kpi-break-value { font-size: 13px; }
+  .kpi-meta-row { font-size: 9.5px; }
+  .swipe-handle { width: 58px; height: 58px; }
+  .swipe-hint { font-size: 12px; padding: 10px 16px; }
 }
 
 @media (max-width: 640px) {
@@ -348,19 +425,19 @@ html.dark .legend-box {
     grid-template-columns: 1fr;
     gap: 6px;
     padding: 6px;
-    max-height: 52vh;
+    max-height: 58vh;
     overflow-y: auto;
   }
   .kpi-card { padding: 8px 10px; gap: 6px; }
   .kpi-total-num { font-size: 22px; }
   .kpi-break-row { font-size: 11px; }
   .kpi-break-value { font-size: 13px; }
+  .kpi-meta-row { font-size: 9.5px; }
 
-  .year-badge { font-size: 11px; padding: 6px 11px; top: 10px; }
-  .year-badge-left { left: 10px; }
-  .year-badge-right { right: 10px; }
-  .swipe-handle { width: 38px; height: 38px; }
+  .year-badge { font-size: 11px; padding: 6px 11px; left: 10px; }
+  .swipe-handle { width: 54px; height: 54px; }
+  .swipe-hint { font-size: 11px; padding: 9px 14px; }
+
   .legend-box { padding: 8px 10px; }
   .legend-item { font-size: 10px; }
-  .swipe-hint { font-size: 10px; padding: 6px 11px; }
 }
