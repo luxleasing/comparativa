@@ -201,50 +201,104 @@ function initSwipe() {
 
   let pct = 50;
   let arrastrando = false;
+  let orientacion = 'v';   // 'v' = vertical (desktop), 'h' = horizontal (mobile)
+
+  // Detecta si es portrait (mobile vertical)
+  const esPortrait = () => window.matchMedia('(orientation: portrait)').matches;
+
+  const aplicarOrientacion = () => {
+    orientacion = esPortrait() ? 'h' : 'v';
+    container.classList.toggle('orientation-h', orientacion === 'h');
+    container.classList.toggle('orientation-v', orientacion === 'v');
+    aplicar();   // recalcula el clip-path con la nueva orientación
+  };
 
   const aplicar = () => {
     pct = Math.max(0, Math.min(100, pct));
-    pane2021.style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
-    divider.style.left = pct + '%';
+
+    if (orientacion === 'h') {
+      // Divisor horizontal: recorta el mapa 2021 desde ABAJO
+      pane2021.style.clipPath = `inset(0 0 ${100 - pct}% 0)`;
+      divider.style.top = pct + '%';
+      divider.style.left = '';
+    } else {
+      // Divisor vertical: recorta el mapa 2021 desde la DERECHA
+      pane2021.style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
+      divider.style.left = pct + '%';
+      divider.style.top = '';
+    }
     divider.setAttribute('aria-valuenow', Math.round(pct));
   };
 
-  const desdeX = (clientX) => {
+  const desdeEvento = (e) => {
     const rect = container.getBoundingClientRect();
-    pct = ((clientX - rect.left) / rect.width) * 100;
+    if (orientacion === 'h') {
+      const y = e.touches ? e.touches[0].clientY : e.clientY;
+      pct = ((y - rect.top) / rect.height) * 100;
+    } else {
+      const x = e.touches ? e.touches[0].clientX : e.clientX;
+      pct = ((x - rect.left) / rect.width) * 100;
+    }
     aplicar();
+  };
+
+  const ocultarHint = () => {
+    if (hint && !hint.classList.contains('fade-out')) {
+      hint.classList.add('fade-out');
+    }
   };
 
   const onDown = (e) => {
     arrastrando = true;
-    hint?.classList.add('fade-out');
-    desdeX(e.touches ? e.touches[0].clientX : e.clientX);
+    ocultarHint();
+    desdeEvento(e);
     e.preventDefault();
   };
   const onMove = (e) => {
     if (!arrastrando) return;
-    desdeX(e.touches ? e.touches[0].clientX : e.clientX);
+    desdeEvento(e);
     e.preventDefault();
   };
   const onUp = () => { arrastrando = false; };
 
+  // Mouse
   divider.addEventListener('mousedown', onDown);
   window.addEventListener('mousemove', onMove);
   window.addEventListener('mouseup', onUp);
 
+  // Touch
   divider.addEventListener('touchstart', onDown, { passive: false });
   window.addEventListener('touchmove', onMove, { passive: false });
   window.addEventListener('touchend', onUp);
 
+  // Teclado — flechas adaptadas a la orientación
   divider.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowLeft')  { pct -= 2; aplicar(); e.preventDefault(); }
-    if (e.key === 'ArrowRight') { pct += 2; aplicar(); e.preventDefault(); }
-    if (e.key === 'Home')       { pct = 0;   aplicar(); e.preventDefault(); }
-    if (e.key === 'End')        { pct = 100; aplicar(); e.preventDefault(); }
+    const step = 2;
+    if (orientacion === 'v') {
+      if (e.key === 'ArrowLeft')  { ocultarHint(); pct -= step; aplicar(); e.preventDefault(); }
+      if (e.key === 'ArrowRight') { ocultarHint(); pct += step; aplicar(); e.preventDefault(); }
+    } else {
+      if (e.key === 'ArrowUp')    { ocultarHint(); pct -= step; aplicar(); e.preventDefault(); }
+      if (e.key === 'ArrowDown')  { ocultarHint(); pct += step; aplicar(); e.preventDefault(); }
+    }
+    if (e.key === 'Home') { ocultarHint(); pct = 0;   aplicar(); e.preventDefault(); }
+    if (e.key === 'End')  { ocultarHint(); pct = 100; aplicar(); e.preventDefault(); }
   });
 
-  aplicar();
-  console.log('[LUX] Swipe nativo listo.');
+  // Escape oculta el hint
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') ocultarHint();
+  });
+
+  // Reaccionar a cambios de orientación (girar el celular)
+  window.addEventListener('resize', aplicarOrientacion);
+  window.addEventListener('orientationchange', () => {
+    setTimeout(aplicarOrientacion, 100);
+  });
+
+  // Arranque
+  aplicarOrientacion();
+  console.log(`[LUX] Swipe adaptativo listo. Orientación: ${orientacion}`);
 }
 
 /* ── Análisis y KPIs ─────────────────────────────────────────────── */
@@ -273,19 +327,31 @@ function analizar(features, anio) {
 function calcularKPIs() {
   const a21 = analizar(datos2021.features || [], 2021);
   const a26 = analizar(datos2026.features || [], 2026);
+  const cfg = APP.consumo;
 
   const pct = (p, t) => t ? ((p / t) * 100).toFixed(1) + '%' : '0%';
 
+  // ── 2021 ──
   $('kpi-total-2021').innerText = fmtNum(a21.total);
   $('kpi-led-2021').innerText   = `${fmtNum(a21.led)} (${pct(a21.led, a21.total)})`;
   $('kpi-sodio-2021').innerText = `${fmtNum(a21.sodio)} (${pct(a21.sodio, a21.total)})`;
   $('kpi-otros-2021').innerText = `${fmtNum(a21.otros)} (${pct(a21.otros, a21.total)})`;
+  $('potencia-2021').innerText  = fmtNum(a21.kw, 1) + ' kW';
 
+  // ── 2026 ──
   $('kpi-total-2026').innerText = fmtNum(a26.total);
   $('kpi-led-2026').innerText   = `${fmtNum(a26.led)} (${pct(a26.led, a26.total)})`;
   $('kpi-sodio-2026').innerText = `${fmtNum(a26.sodio)} (${pct(a26.sodio, a26.total)})`;
   $('kpi-otros-2026').innerText = `${fmtNum(a26.otros)} (${pct(a26.otros, a26.total)})`;
+  $('potencia-2026').innerText  = fmtNum(a26.kw, 1) + ' kW';
 
+  // ── Consumo mensual (11 h/día · 30 días) ──
+  const kwh21 = a21.kw * cfg.horasDiarias * cfg.diasMes;
+  const kwh26 = a26.kw * cfg.horasDiarias * cfg.diasMes;
+  $('kwh-2021').innerText = fmtNum(kwh21, 0) + ' kWh';
+  $('kwh-2026').innerText = fmtNum(kwh26, 0) + ' kWh';
+
+  // ── Barras proporcionales ──
   const pintarBarra = (prefijo, data) => {
     const t = data.total || 1;
     const set = (id, v) => { const el = document.getElementById(id); if (el) el.style.width = v + '%'; };
@@ -296,9 +362,7 @@ function calcularKPIs() {
   pintarBarra('2021', a21);
   pintarBarra('2026', a26);
 
-  const cfg = APP.consumo;
-  const kwh21 = a21.kw * cfg.horasDiarias * cfg.diasMes;
-  const kwh26 = a26.kw * cfg.horasDiarias * cfg.diasMes;
+  // ── Debug ──
   const costoAnual21 = kwh21 * cfg.tarifaKwh * 12;
   const costoAnual26 = kwh26 * cfg.tarifaKwh * 12;
 
