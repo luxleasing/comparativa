@@ -29,11 +29,11 @@
     </h1>
 
     <div class="flex items-center gap-2">
-<select id="map-style-select" class="header-select">
-  <option value="light">Claro</option>
-  <option value="dark">Oscuro</option>
-  <option value="satellite" selected>Satelital</option>
-</select>
+      <select id="map-style-select" class="header-select">
+        <option value="light">Claro</option>
+        <option value="dark">Oscuro</option>
+        <option value="satellite" selected>Satelital</option>
+      </select>
       <button id="theme-toggle" class="header-btn" title="Cambiar tema">
         <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
           <circle cx="12" cy="12" r="7"></circle>
@@ -51,7 +51,7 @@
   <div class="kpi-card kpi-card-before">
     <div class="kpi-head">
       <span class="kpi-dot" style="background:#e2f916"></span>
-      <span class="kpi-year">2021 · ANTES</span>
+      <span class="kpi-year">2021</span>
     </div>
     <div class="kpi-total">
       <span id="kpi-total-2021" class="kpi-total-num">—</span>
@@ -76,6 +76,16 @@
         <span id="kpi-otros-2021" class="kpi-break-value kpi-val-otros">—</span>
       </div>
     </div>
+    <div class="kpi-meta">
+      <div class="kpi-meta-row">
+        <span class="kpi-meta-label">Potencia total</span>
+        <span id="potencia-2021" class="kpi-meta-value">—</span>
+      </div>
+      <div class="kpi-meta-row">
+        <span class="kpi-meta-label">Consumo mensual <span class="kpi-meta-hint">(11 h/día)</span></span>
+        <span id="kwh-2021" class="kpi-meta-value">—</span>
+      </div>
+    </div>
   </div>
 
   <!-- Flecha -->
@@ -89,7 +99,7 @@
   <div class="kpi-card kpi-card-after">
     <div class="kpi-head">
       <span class="kpi-dot" style="background:#22d3ee"></span>
-      <span class="kpi-year">2026 · DESPUÉS</span>
+      <span class="kpi-year">2026</span>
     </div>
     <div class="kpi-total">
       <span id="kpi-total-2026" class="kpi-total-num">—</span>
@@ -114,6 +124,16 @@
         <span id="kpi-otros-2026" class="kpi-break-value kpi-val-otros">—</span>
       </div>
     </div>
+    <div class="kpi-meta">
+      <div class="kpi-meta-row">
+        <span class="kpi-meta-label">Potencia total</span>
+        <span id="potencia-2026" class="kpi-meta-value">—</span>
+      </div>
+      <div class="kpi-meta-row">
+        <span class="kpi-meta-label">Consumo mensual <span class="kpi-meta-hint">(11 h/día)</span></span>
+        <span id="kwh-2026" class="kpi-meta-value">—</span>
+      </div>
+    </div>
   </div>
 
 </div>
@@ -123,36 +143,43 @@
   <div id="map-2026" class="map-pane"></div>
   <div id="map-2021" class="map-pane map-pane-clipped"></div>
 
-  <!-- Divisor -->
+  <!-- Divisor HORIZONTAL -->
   <div id="swipe-divider" role="slider" aria-label="Comparar 2021 y 2026"
        aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0">
     <div class="swipe-line"></div>
-    <button class="swipe-handle" aria-label="Arrastrar para comparar" type="button">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M9 6l-4 6 4 6M15 6l4 6-4 6" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </button>
+<button class="swipe-handle" aria-label="Arrastrar para comparar" type="button">
+  <!-- Ícono para swipe VERTICAL (flechas ← →) -->
+  <svg class="icon-v" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M9 6l-4 6 4 6M15 6l4 6-4 6" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <!-- Ícono para swipe HORIZONTAL (flechas ↑ ↓) -->
+  <svg class="icon-h" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M6 9l6-4 6 4M6 15l6 4 6-4" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</button>
   </div>
 
-  <!-- Etiquetas de año -->
-  <div class="year-badge year-badge-left">
+  <!-- Badges de año: 2021 arriba, 2026 abajo -->
+  <div class="year-badge year-badge-top">
     <span class="year-dot" style="background:#e2f916"></span>
     <span>2021</span>
   </div>
-  <div class="year-badge year-badge-right">
+  <div class="year-badge year-badge-bottom">
     <span class="year-dot" style="background:#22d3ee"></span>
     <span>2026</span>
   </div>
 
-  <!-- Hint -->
-  <div id="swipe-hint" class="swipe-hint">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M8 12h8M12 8l-4 4 4 4M12 16l4-4-4-4" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
-    </svg>
-    <span>Arrastrá el divisor para comparar</span>
-  </div>
+  <!-- Hint: se queda hasta interacción -->
+<div id="swipe-hint" class="swipe-hint">
+  <svg class="icon-v" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M5 12h14M9 8l-4 4 4 4M15 8l4 4-4 4" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+  </svg>
+  <svg class="icon-h" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M12 5v14M8 9l4-4 4 4M8 15l4 4 4-4" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+  </svg>
+  <span>Arrastrá el círculo para comparar</span>
+</div>
 
-  <!-- Leyenda -->
   <div id="legend-floating" class="absolute bottom-4 left-4 z-30">
     <div class="legend-box">
       <div class="legend-title">Tecnología</div>
