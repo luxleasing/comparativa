@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rivadavia · Reconversión LED 2021 → 2026</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://unpkg.com/maplibre-gl@4.7.0/dist/maplibre-gl.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+<!-- ══════════════ HEADER ══════════════ -->
+<header id="main-header" class="w-full z-30 relative shrink-0">
+  <div class="flex items-center justify-between px-4 h-[54px] gap-4">
+    <div class="flex items-center gap-3 shrink-0">
+      <img src="logo_lux_byn.png" alt="Lux" class="h-8 w-auto opacity-90" onerror="this.style.display='none'">
+      <div class="h-6 border-l border-white/30"></div>
+      <img src="logo_riv_2.png" alt="Rivadavia" class="h-6 w-auto opacity-90" onerror="this.style.display='none'">
+    </div>
+
+    <h1 class="hidden md:block text-[13px] font-semibold text-white tracking-wide">
+      Reconversión LED · Rivadavia <span class="opacity-70 mx-1">·</span>
+      <span class="opacity-90 font-normal">2021 vs 2026</span>
+    </h1>
+
+    <div class="flex items-center gap-2">
+<select id="map-style-select" class="header-select">
+  <option value="light">Claro</option>
+  <option value="dark">Oscuro</option>
+  <option value="satellite" selected>Satelital</option>
+</select>
+      <button id="theme-toggle" class="header-btn" title="Cambiar tema">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="12" cy="12" r="7"></circle>
+          <path d="M12 5a7 7 0 0 0 0 14V5z" fill="currentColor" stroke="none"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════════ KPIs ══════════════ -->
+<div class="kpi-strip shrink-0">
+
+  <!-- 2021 -->
+  <div class="kpi-card kpi-card-before">
+    <div class="kpi-head">
+      <span class="kpi-dot" style="background:#e2f916"></span>
+      <span class="kpi-year">2021 · ANTES</span>
+    </div>
+    <div class="kpi-total">
+      <span id="kpi-total-2021" class="kpi-total-num">—</span>
+      <span class="kpi-total-label">luminarias</span>
+    </div>
+    <div class="kpi-bar">
+      <div id="bar-led-2021"   class="kpi-bar-seg" style="background:#22d3ee"></div>
+      <div id="bar-sodio-2021" class="kpi-bar-seg" style="background:#e2f916"></div>
+      <div id="bar-otros-2021" class="kpi-bar-seg" style="background:#e6b290"></div>
+    </div>
+    <div class="kpi-breakdown">
+      <div class="kpi-break-row">
+        <span class="kpi-break-label"><span class="dot sm" style="background:#22d3ee"></span>LED</span>
+        <span id="kpi-led-2021" class="kpi-break-value kpi-val-led">—</span>
+      </div>
+      <div class="kpi-break-row">
+        <span class="kpi-break-label"><span class="dot sm" style="background:#e2f916"></span>Sodio / SAP</span>
+        <span id="kpi-sodio-2021" class="kpi-break-value kpi-val-sodio">—</span>
+      </div>
+      <div class="kpi-break-row">
+        <span class="kpi-break-label"><span class="dot sm" style="background:#e6b290"></span>Otros</span>
+        <span id="kpi-otros-2021" class="kpi-break-value kpi-val-otros">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Flecha -->
+  <div class="kpi-arrow" aria-hidden="true">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+
+  <!-- 2026 -->
+  <div class="kpi-card kpi-card-after">
+    <div class="kpi-head">
+      <span class="kpi-dot" style="background:#22d3ee"></span>
+      <span class="kpi-year">2026 · DESPUÉS</span>
+    </div>
+    <div class="kpi-total">
+      <span id="kpi-total-2026" class="kpi-total-num">—</span>
+      <span class="kpi-total-label">luminarias</span>
+    </div>
+    <div class="kpi-bar">
+      <div id="bar-led-2026"   class="kpi-bar-seg" style="background:#22d3ee"></div>
+      <div id="bar-sodio-2026" class="kpi-bar-seg" style="background:#e2f916"></div>
+      <div id="bar-otros-2026" class="kpi-bar-seg" style="background:#e6b290"></div>
+    </div>
+    <div class="kpi-breakdown">
+      <div class="kpi-break-row">
+        <span class="kpi-break-label"><span class="dot sm" style="background:#22d3ee"></span>LED</span>
+        <span id="kpi-led-2026" class="kpi-break-value kpi-val-led">—</span>
+      </div>
+      <div class="kpi-break-row">
+        <span class="kpi-break-label"><span class="dot sm" style="background:#e2f916"></span>Sodio / SAP</span>
+        <span id="kpi-sodio-2026" class="kpi-break-value kpi-val-sodio">—</span>
+      </div>
+      <div class="kpi-break-row">
+        <span class="kpi-break-label"><span class="dot sm" style="background:#e6b290"></span>Otros</span>
+        <span id="kpi-otros-2026" class="kpi-break-value kpi-val-otros">—</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════ MAPA + SWIPE ══════════════ -->
+<div id="comparison-container" class="flex-1 relative min-h-0">
+  <div id="map-2026" class="map-pane"></div>
+  <div id="map-2021" class="map-pane map-pane-clipped"></div>
+
+  <!-- Divisor -->
+  <div id="swipe-divider" role="slider" aria-label="Comparar 2021 y 2026"
+       aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0">
+    <div class="swipe-line"></div>
+    <button class="swipe-handle" aria-label="Arrastrar para comparar" type="button">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 6l-4 6 4 6M15 6l4 6-4 6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Etiquetas de año -->
+  <div class="year-badge year-badge-left">
+    <span class="year-dot" style="background:#e2f916"></span>
+    <span>2021</span>
+  </div>
+  <div class="year-badge year-badge-right">
+    <span class="year-dot" style="background:#22d3ee"></span>
+    <span>2026</span>
+  </div>
+
+  <!-- Hint -->
+  <div id="swipe-hint" class="swipe-hint">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M8 12h8M12 8l-4 4 4 4M12 16l4-4-4-4" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+    </svg>
+    <span>Arrastrá el divisor para comparar</span>
+  </div>
+
+  <!-- Leyenda -->
+  <div id="legend-floating" class="absolute bottom-4 left-4 z-30">
+    <div class="legend-box">
+      <div class="legend-title">Tecnología</div>
+      <div class="legend-item"><span class="dot" style="background:#22d3ee"></span> LED</div>
+      <div class="legend-item"><span class="dot" style="background:#e2f916"></span> Sodio / SAP</div>
+      <div class="legend-item"><span class="dot" style="background:#e6b290"></span> Otros</div>
+    </div>
+  </div>
+
+  <div id="diagnostico" class="absolute top-3 left-1/2 -translate-x-1/2 z-50 hidden rounded-md text-white text-[11px] px-3 py-1.5 shadow-lg"></div>
+</div>
+
+<script src="https://unpkg.com/maplibre-gl@4.7.0/dist/maplibre-gl.js"></script>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
