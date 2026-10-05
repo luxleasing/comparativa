@@ -1,5 +1,5 @@
 /* ============================================================================
-   LUX · Comparativa Luminarias 2021 vs 2026 — Swipe nativo
+   LUX · Comparativa Luminarias 2021 vs 2026 — 
    ============================================================================ */
 
 const APP = window.LUX_CONFIG;
@@ -7,7 +7,7 @@ const APP = window.LUX_CONFIG;
 let datos2021 = { type: 'FeatureCollection', features: [] };
 let datos2026 = { type: 'FeatureCollection', features: [] };
 let map2021, map2026;
-let estiloActual = 'satellite';   // ← arranca satelital
+let estiloActual = 'satellite';
 let sincronizando = false;
 
 const $ = id => document.getElementById(id);
@@ -70,7 +70,6 @@ function initMapas() {
   const centro = APP.municipio.mapaInicial.center;
   const zoom = APP.municipio.mapaInicial.zoom;
 
-  // Opciones comunes de navegación 
   const navOpts = {
     dragPan: true,
     scrollZoom: { around: 'center' },
@@ -83,7 +82,6 @@ function initMapas() {
     pitchWithRotate: true
   };
 
-  // Mapa de fondo (2026): recibe TODA la interacción
   map2026 = new maplibregl.Map({
     container: 'map-2026',
     style: estilo,
@@ -96,7 +94,6 @@ function initMapas() {
     ...navOpts
   });
 
-  // Mapa recortado (2021): sigue al 2026 pero NO recibe eventos
   map2021 = new maplibregl.Map({
     container: 'map-2021',
     style: estilo,
@@ -108,7 +105,6 @@ function initMapas() {
     interactive: false
   });
 
-  // Sincronizar cámara 2026 → 2021 en cada frame de movimiento
   map2026.on('move', () => {
     if (sincronizando) return;
     sincronizando = true;
@@ -121,7 +117,6 @@ function initMapas() {
     sincronizando = false;
   });
 
-  // Cursor de "agarre" al pasar por encima del mapa
   map2026.getCanvas().style.cursor = 'grab';
   map2026.on('mousedown', () => { map2026.getCanvas().style.cursor = 'grabbing'; });
   map2026.on('mouseup',   () => { map2026.getCanvas().style.cursor = 'grab'; });
@@ -201,28 +196,25 @@ function initSwipe() {
 
   let pct = 50;
   let arrastrando = false;
-  let orientacion = 'v';   // 'v' = vertical (desktop), 'h' = horizontal (mobile)
+  let orientacion = 'v';
 
-  // Detecta si es portrait (mobile vertical)
   const esPortrait = () => window.matchMedia('(orientation: portrait)').matches;
 
   const aplicarOrientacion = () => {
     orientacion = esPortrait() ? 'h' : 'v';
     container.classList.toggle('orientation-h', orientacion === 'h');
     container.classList.toggle('orientation-v', orientacion === 'v');
-    aplicar();   // recalcula el clip-path con la nueva orientación
+    aplicar();
   };
 
   const aplicar = () => {
     pct = Math.max(0, Math.min(100, pct));
 
     if (orientacion === 'h') {
-      // Divisor horizontal: recorta el mapa 2021 desde ABAJO
       pane2021.style.clipPath = `inset(0 0 ${100 - pct}% 0)`;
       divider.style.top = pct + '%';
       divider.style.left = '';
     } else {
-      // Divisor vertical: recorta el mapa 2021 desde la DERECHA
       pane2021.style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
       divider.style.left = pct + '%';
       divider.style.top = '';
@@ -261,17 +253,14 @@ function initSwipe() {
   };
   const onUp = () => { arrastrando = false; };
 
-  // Mouse
   divider.addEventListener('mousedown', onDown);
   window.addEventListener('mousemove', onMove);
   window.addEventListener('mouseup', onUp);
 
-  // Touch
   divider.addEventListener('touchstart', onDown, { passive: false });
   window.addEventListener('touchmove', onMove, { passive: false });
   window.addEventListener('touchend', onUp);
 
-  // Teclado — flechas adaptadas a la orientación
   divider.addEventListener('keydown', (e) => {
     const step = 2;
     if (orientacion === 'v') {
@@ -285,18 +274,15 @@ function initSwipe() {
     if (e.key === 'End')  { ocultarHint(); pct = 100; aplicar(); e.preventDefault(); }
   });
 
-  // Escape oculta el hint
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') ocultarHint();
   });
 
-  // Reaccionar a cambios de orientación (girar el celular)
   window.addEventListener('resize', aplicarOrientacion);
   window.addEventListener('orientationchange', () => {
     setTimeout(aplicarOrientacion, 100);
   });
 
-  // Arranque
   aplicarOrientacion();
   console.log(`[LUX] Swipe adaptativo listo. Orientación: ${orientacion}`);
 }
@@ -345,7 +331,7 @@ function calcularKPIs() {
   $('kpi-otros-2026').innerText = `${fmtNum(a26.otros)} (${pct(a26.otros, a26.total)})`;
   $('potencia-2026').innerText  = fmtNum(a26.kw, 1) + ' kW';
 
-  // ── Consumo mensual (11 h/día · 30 días) ──
+  // ── Consumo mensual ──
   const kwh21 = a21.kw * cfg.horasDiarias * cfg.diasMes;
   const kwh26 = a26.kw * cfg.horasDiarias * cfg.diasMes;
   $('kwh-2021').innerText = fmtNum(kwh21, 0) + ' kWh';
@@ -361,6 +347,21 @@ function calcularKPIs() {
   };
   pintarBarra('2021', a21);
   pintarBarra('2026', a26);
+
+  // ── Resumen para chip colapsado (mobile) ──
+  const sum = $('kpi-summary');
+  if (sum) {
+    sum.innerHTML = `
+      <span class="sum-pill old">
+        <span class="dot sm" style="background:#e2f916"></span>
+        2021 · ${fmtNum(a21.total)} · ${pct(a21.led, a21.total)} LED
+      </span>
+      <span class="sum-pill new">
+        <span class="dot sm" style="background:#22d3ee"></span>
+        2026 · ${fmtNum(a26.total)} · ${pct(a26.led, a26.total)} LED
+      </span>
+    `;
+  }
 
   // ── Debug ──
   const costoAnual21 = kwh21 * cfg.tarifaKwh * 12;
@@ -429,6 +430,16 @@ function initUI() {
     $('map-style-select').value = nuevoEstilo;
     cambiarEstilo(nuevoEstilo);
   });
+
+  // ── Toggle KPIs (mobile) ──
+  const kpiToggle = $('kpi-toggle');
+  const kpiStrip  = $('kpi-strip');
+  if (kpiToggle && kpiStrip) {
+    kpiToggle.addEventListener('click', () => {
+      const expanded = kpiStrip.classList.toggle('expanded');
+      kpiToggle.setAttribute('aria-expanded', expanded);
+    });
+  }
 }
 
 /* ── Arranque ─────────────────────────────────────────────────────── */
