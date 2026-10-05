@@ -70,7 +70,7 @@ function initMapas() {
   const centro = APP.municipio.mapaInicial.center;
   const zoom = APP.municipio.mapaInicial.zoom;
 
-  // Opciones comunes de navegación (¡esto es lo importante!)
+  // Opciones comunes de navegación 
   const navOpts = {
     dragPan: true,
     scrollZoom: { around: 'center' },
