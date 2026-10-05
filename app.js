@@ -1,5 +1,5 @@
 /* ============================================================================
-   LUX · Comparativa Luminarias 2021 vs 2026 — 
+   LUX · Comparativa Luminarias 2021 vs 2026
    ============================================================================ */
 
 const APP = window.LUX_CONFIG;
@@ -403,6 +403,269 @@ function reinyectar(map, srcId, layerId, datos, anio) {
   }, 150);
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   EXPORTACIÓN A PDF
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Overlay de progreso */
+function mostrarProgreso(msg) {
+  let el = $('pdf-progress');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'pdf-progress';
+    el.className = 'pdf-progress';
+    el.innerHTML = `<div class="pdf-spinner"></div><div id="pdf-progress-msg"></div>`;
+    document.body.appendChild(el);
+  }
+  const msgEl = $('pdf-progress-msg');
+  if (msgEl) msgEl.textContent = msg;
+  el.classList.remove('hidden');
+}
+function ocultarProgreso() {
+  const el = $('pdf-progress');
+  if (el) el.classList.add('hidden');
+}
+
+/* Captura un mapa MapLibre manteniendo su estado real (zoom, posición, etc.) */
+function capturarMapa(idMapa) {
+  return new Promise((resolve, reject) => {
+    const map = idMapa === 'map-2026' ? map2026 : map2021;
+    if (!map) return reject(new Error('Mapa no disponible: ' + idMapa));
+
+    map.once('render', () => {
+      requestAnimationFrame(() => {
+        const canvas = map.getCanvas();
+        try {
+          const out = document.createElement('canvas');
+          out.width = canvas.width;
+          out.height = canvas.height;
+          const ctx = out.getContext('2d');
+          ctx.drawImage(canvas, 0, 0);
+          resolve(out);
+        } catch (err) {
+          reject(err);
+        }
+      });
+    });
+    map.triggerRepaint();
+  });
+}
+
+/* Genera el PDF */
+async function generarPDF({ titulo, notas, conKpis, conMapas }) {
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    throw new Error('jsPDF no está disponible');
+  }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+  const W = doc.internal.pageSize.getWidth();
+  const H = doc.internal.pageSize.getHeight();
+  const M = 12;
+
+  mostrarProgreso('Capturando mapas…');
+
+  const canvas2026 = conMapas ? await capturarMapa('map-2026') : null;
+  const canvas2021 = conMapas ? await capturarMapa('map-2021') : null;
+
+  mostrarProgreso('Armando PDF…');
+
+  let y = M;
+
+  // ── Encabezado ──
+  doc.setFillColor(250, 115, 19);
+  doc.rect(0, 0, W, 16, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text(titulo, M, 10.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  const fecha = new Date().toLocaleDateString('es-AR', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit'
+  });
+  doc.text(fecha, W - M, 10.5, { align: 'right' });
+  y = 24;
+
+  // ── KPIs ──
+  if (conKpis && window.LUX_DEBUG) {
+    const { a21, a26, kwh21, kwh26 } = window.LUX_DEBUG;
+    const pct = (p, t) => t ? ((p / t) * 100).toFixed(1) + '%' : '0%';
+
+    doc.setTextColor(15, 23, 42);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text('Resumen comparativo', M, y);
+    y += 6;
+
+    const colW = (W - M * 2) / 3;
+    const rows = [
+      ['Métrica', '2021', '2026'],
+      ['Total luminarias', fmtNum(a21.total), fmtNum(a26.total)],
+      ['LED', `${fmtNum(a21.led)} (${pct(a21.led, a21.total)})`, `${fmtNum(a26.led)} (${pct(a26.led, a26.total)})`],
+      ['Sodio / SAP', `${fmtNum(a21.sodio)} (${pct(a21.sodio, a21.total)})`, `${fmtNum(a26.sodio)} (${pct(a26.sodio, a26.total)})`],
+      ['Otros', `${fmtNum(a21.otros)} (${pct(a21.otros, a21.total)})`, `${fmtNum(a26.otros)} (${pct(a26.otros, a26.total)})`],
+      ['Potencia total', fmtNum(a21.kw, 1) + ' kW', fmtNum(a26.kw, 1) + ' kW'],
+      ['Consumo mensual', fmtNum(kwh21, 0) + ' kWh', fmtNum(kwh26, 0) + ' kWh']
+    ];
+
+    doc.setFontSize(8.5);
+    let rowY = y + 4;
+    rows.forEach((r, i) => {
+      const isHeader = i === 0;
+      if (isHeader) {
+        doc.setFillColor(241, 245, 249);
+        doc.rect(M, rowY - 4, W - M * 2, 6, 'F');
+      }
+      doc.setFont('helvetica', isHeader ? 'bold' : 'normal');
+      doc.setTextColor(isHeader ? 15 : 71, isHeader ? 23 : 85, isHeader ? 42 : 105);
+      r.forEach((cell, j) => {
+        const x = M + j * colW + 2;
+        doc.text(String(cell), x, rowY);
+      });
+      if (i > 0) {
+        doc.setDrawColor(226, 232, 240);
+        doc.line(M, rowY + 1.5, W - M, rowY + 1.5);
+      }
+      rowY += 6;
+    });
+    y = rowY + 4;
+  }
+
+  // ── Mapas (uno debajo del otro) ──
+  if (conMapas && canvas2021 && canvas2026) {
+    const mapW = W - M * 2;
+    const ratio = canvas2021.height / canvas2021.width;
+    const mapH = mapW * ratio;
+
+    if (y + 6 + mapH > H - M - 20) {
+      doc.addPage();
+      y = M;
+    }
+
+    doc.setTextColor(15, 23, 42);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text('Mapa comparativo', M, y);
+    y += 5;
+
+    // 2021
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(202, 138, 4);
+    doc.text('2021', M, y);
+    y += 2;
+    doc.addImage(canvas2021.toDataURL('image/jpeg', 0.88), 'JPEG', M, y, mapW, mapH);
+    y += mapH + 6;
+
+    // Verificar espacio para el segundo mapa
+    if (y + 4 + mapH > H - M - 20) {
+      doc.addPage();
+      y = M;
+    }
+
+    // 2026
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(6, 182, 212);
+    doc.text('2026', M, y);
+    y += 2;
+    doc.addImage(canvas2026.toDataURL('image/jpeg', 0.88), 'JPEG', M, y, mapW, mapH);
+    y += mapH + 4;
+  }
+
+  // ── Notas / Observaciones ──
+  if (notas) {
+    const espaciado = y + 30 > H - M ? 12 : 6;
+    if (y + espaciado + 20 > H - M) {
+      doc.addPage();
+      y = M;
+    } else {
+      y += espaciado;
+    }
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(15, 23, 42);
+    doc.text('Observaciones', M, y);
+    y += 5;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(71, 85, 105);
+    const lineas = doc.splitTextToSize(notas, W - M * 2 - 4);
+    doc.text(lineas, M, y);
+  }
+
+  // ── Pie de página ──
+  const totalPages = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    doc.setDrawColor(226, 232, 240);
+    doc.line(M, H - 10, W - M, H - 10);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(148, 163, 184);
+    doc.text('Reconversión LED Rivadavia', M, H - 6);
+    doc.text(`Página ${i} / ${totalPages}`, W - M, H - 6, { align: 'right' });
+  }
+
+  ocultarProgreso();
+
+  const nombre = `informe-led-${new Date().toISOString().slice(0,10)}.pdf`;
+  doc.save(nombre);
+}
+
+/* ── Init PDF (modal) ─────────────────────────────────────────────── */
+function initPDF() {
+  const modal     = $('pdf-modal');
+  const btnOpen   = $('btn-pdf');
+  const btnClose  = $('pdf-modal-close');
+  const btnCancel = $('pdf-cancel');
+  const btnGen    = $('pdf-generate');
+  const backdrop  = modal?.querySelector('.pdf-modal-backdrop');
+
+  if (!modal || !btnOpen || !btnGen) {
+    console.warn('[LUX] Modal PDF no encontrado en el DOM');
+    return;
+  }
+
+  const abrir  = () => modal.classList.remove('hidden');
+  const cerrar = () => modal.classList.add('hidden');
+
+  btnOpen.addEventListener('click', abrir);
+  btnClose?.addEventListener('click', cerrar);
+  btnCancel?.addEventListener('click', cerrar);
+  backdrop?.addEventListener('click', cerrar);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal.classList.contains('hidden')) cerrar();
+  });
+
+  btnGen.addEventListener('click', async () => {
+    btnGen.disabled = true;
+    const originalHTML = btnGen.innerHTML;
+    btnGen.innerHTML = 'Generando…';
+    try {
+      await generarPDF({
+        titulo:   $('pdf-title').value.trim() || 'Reconversión LED · Rivadavia',
+        notas:    $('pdf-notes').value.trim(),
+        conKpis:  $('pdf-include-kpis').checked,
+        conMapas: $('pdf-include-maps').checked
+      });
+      cerrar();
+    } catch (err) {
+      console.error(err);
+      setDiag('Error al generar PDF: ' + err.message);
+      ocultarProgreso();
+    } finally {
+      btnGen.disabled = false;
+      btnGen.innerHTML = originalHTML;
+    }
+  });
+}
+
 /* ── UI ───────────────────────────────────────────────────────────── */
 function initUI() {
   const html = document.documentElement;
@@ -440,6 +703,9 @@ function initUI() {
       kpiToggle.setAttribute('aria-expanded', expanded);
     });
   }
+
+  // ── PDF ──
+  initPDF();
 }
 
 /* ── Arranque ─────────────────────────────────────────────────────── */
