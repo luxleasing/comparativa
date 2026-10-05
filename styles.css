@@ -556,3 +556,193 @@ html.dark .legend-box {
   .legend-title { margin-bottom: 4px; padding-bottom: 4px; }
   .legend-item { font-size: 10px; padding: 2px 0; }
 }
+
+
+/* ══════════════════════════════════════════════════════════════════
+   MODAL PDF
+   ══════════════════════════════════════════════════════════════════ */
+.pdf-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.pdf-modal.hidden { display: none; }
+
+.pdf-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  animation: pdfFadeIn 0.2s ease;
+}
+
+.pdf-modal-panel {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-card);
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+  animation: pdfSlideUp 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  overflow: hidden;
+}
+
+@keyframes pdfFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pdfSlideUp {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.pdf-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-card);
+}
+.pdf-modal-header h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.pdf-modal-close {
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid var(--border-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.pdf-modal-close:hover { background: var(--bg-card-soft); }
+
+.pdf-modal-body {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+}
+
+.pdf-field { display: flex; flex-direction: column; gap: 6px; }
+.pdf-field-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+.pdf-input,
+.pdf-textarea {
+  width: 100%;
+  padding: 9px 11px;
+  border-radius: 8px;
+  border: 1px solid var(--border-card);
+  background: var(--bg-card-soft);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: var(--font-ui);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.pdf-input:focus,
+.pdf-textarea:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px rgba(34,211,238,0.15);
+}
+.pdf-textarea {
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.45;
+}
+
+.pdf-field-inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 9px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.pdf-field-inline input[type="checkbox"] {
+  width: 16px; height: 16px;
+  accent-color: var(--cyan);
+  cursor: pointer;
+}
+
+.pdf-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--border-card);
+  background: var(--bg-card-soft);
+}
+
+.pdf-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: var(--font-ui);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.pdf-btn-ghost {
+  background: transparent;
+  border-color: var(--border-card);
+  color: var(--text-secondary);
+}
+.pdf-btn-ghost:hover { background: var(--bg-card); }
+.pdf-btn-primary {
+  background: linear-gradient(98deg, #E5660B 0%, #FA7313 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(250,115,19,0.35);
+}
+.pdf-btn-primary:hover { filter: brightness(1.05); }
+.pdf-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  filter: grayscale(0.4);
+}
+
+/* Overlay de progreso mientras se genera */
+.pdf-progress {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 14px;
+  background: rgba(0,0,0,0.7);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+}
+.pdf-progress.hidden { display: none; }
+.pdf-spinner {
+  width: 34px; height: 34px;
+  border: 3px solid rgba(255,255,255,0.2);
+  border-top-color: #22d3ee;
+  border-radius: 50%;
+  animation: pdfSpin 0.9s linear infinite;
+}
+@keyframes pdfSpin { to { transform: rotate(360deg); } }
