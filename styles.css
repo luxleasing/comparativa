@@ -235,8 +235,12 @@ html.dark #comparison-container { background: #0f172a; }
 }
 #map-2026 { z-index: 1; }
 #map-2021 { z-index: 2; }
-#map-2021 .maplibregl-canvas { pointer-events: none; }
-
+#map-2021,
+#map-2021 .maplibregl-canvas-container,
+#map-2021 .maplibregl-canvas,
+#map-2021 .maplibregl-control-container {
+  pointer-events: none !important;
+}
 /* ── Divisor (base: se ajusta por clases .orientation-v / .orientation-h) ── */
 #swipe-divider {
   position: absolute;
