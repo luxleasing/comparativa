@@ -6,12 +6,12 @@ window.LUX_CONFIG = {
   },
 
   fuentes: {
-    luminarias_2021: './luminarias_rivadavia_2021_4326.geojson',
+    luminarias_2021: './luminarias_rivadavia_2024.geojson',
     luminarias_2026: './luminarias_rivadavia_2026_4326.geojson'
   },
 
   campos: {
-    2021: {
+    2024: {
       tecnologia: ['tec', 'TEC', 'tecnologia', 'TECNOLOGIA', 'tipo', 'TIPO'],
       potencia:   ['potencia', 'POTENCIA', 'pot', 'POT', 'watts', 'WATTS']
     },
