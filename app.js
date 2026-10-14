@@ -1,12 +1,12 @@
 /* ============================================================================
-   LUX · Comparativa Luminarias 2021 vs 2026
+   LUX · Comparativa Luminarias 2024 vs 2026
    ============================================================================ */
 
 const APP = window.LUX_CONFIG;
 
-let datos2021 = { type: 'FeatureCollection', features: [] };
+let datos2024 = { type: 'FeatureCollection', features: [] };
 let datos2026 = { type: 'FeatureCollection', features: [] };
-let map2021, map2026;
+let map2024, map2026;
 let estiloActual = 'satellite';
 let sincronizando = false;
 
@@ -94,8 +94,8 @@ function initMapas() {
     ...navOpts
   });
 
-  map2021 = new maplibregl.Map({
-    container: 'map-2021',
+  map2024 = new maplibregl.Map({
+    container: 'map-2024',
     style: estilo,
     center: centro,
     zoom: zoom,
@@ -108,7 +108,7 @@ function initMapas() {
   map2026.on('move', () => {
     if (sincronizando) return;
     sincronizando = true;
-    map2021.jumpTo({
+    map2024.jumpTo({
       center: map2026.getCenter(),
       zoom: map2026.getZoom(),
       bearing: map2026.getBearing(),
@@ -129,7 +129,7 @@ function initMapas() {
       cargarDatos();
     }
   };
-  map2021.on('load', onLoad);
+  map2024.on('load', onLoad);
   map2026.on('load', onLoad);
 }
 
@@ -137,27 +137,27 @@ function initMapas() {
 async function cargarDatos() {
   try {
     const [r1, r2] = await Promise.all([
-      fetch(APP.fuentes.luminarias_2021, { cache: 'no-store' }),
+      fetch(APP.fuentes.luminarias_2024, { cache: 'no-store' }),
       fetch(APP.fuentes.luminarias_2026, { cache: 'no-store' })
     ]);
-    if (!r1.ok) throw new Error(`2021: HTTP ${r1.status}`);
+    if (!r1.ok) throw new Error(`2024: HTTP ${r1.status}`);
     if (!r2.ok) throw new Error(`2026: HTTP ${r2.status}`);
 
-    datos2021 = await r1.json();
+    datos2024 = await r1.json();
     datos2026 = await r2.json();
 
-    const n1 = datos2021.features?.length || 0;
+    const n1 = datos2024.features?.length || 0;
     const n2 = datos2026.features?.length || 0;
-    setDiag(`2021: ${fmtNum(n1)} · 2026: ${fmtNum(n2)} luminarias`, 'info');
+    setDiag(`2024: ${fmtNum(n1)} · 2026: ${fmtNum(n2)} luminarias`, 'info');
 
-    map2021.addSource('lum-2021', { type: 'geojson', data: datos2021 });
-    map2021.addLayer({
-      id: 'lum-2021-layer',
+    map2024.addSource('lum-2024', { type: 'geojson', data: datos2024 });
+    map2024.addLayer({
+      id: 'lum-2024-layer',
       type: 'circle',
-      source: 'lum-2021',
+      source: 'lum-2024',
       paint: {
         'circle-radius': ['interpolate', ['linear'], ['zoom'], 11, 2, 14, 3.5, 17, 7],
-        'circle-color': colorExpression(2021),
+        'circle-color': colorExpression(2024),
         'circle-opacity': 0.9,
         'circle-stroke-width': 0.4,
         'circle-stroke-color': 'rgba(0,0,0,0.5)'
@@ -191,7 +191,7 @@ async function cargarDatos() {
 function initSwipe() {
   const container = $('comparison-container');
   const divider = $('swipe-divider');
-  const pane2021 = $('map-2021');
+  const pane2024 = $('map-2024');
   const hint = $('swipe-hint');
 
   let pct = 50;
@@ -211,11 +211,11 @@ function initSwipe() {
     pct = Math.max(0, Math.min(100, pct));
 
     if (orientacion === 'h') {
-      pane2021.style.clipPath = `inset(0 0 ${100 - pct}% 0)`;
+      pane2024.style.clipPath = `inset(0 0 ${100 - pct}% 0)`;
       divider.style.top = pct + '%';
       divider.style.left = '';
     } else {
-      pane2021.style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
+      pane2024.style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
       divider.style.left = pct + '%';
       divider.style.top = '';
     }
@@ -311,18 +311,18 @@ function analizar(features, anio) {
 }
 
 function calcularKPIs() {
-  const a21 = analizar(datos2021.features || [], 2021);
+  const a24 = analizar(datos2024.features || [], 2024);
   const a26 = analizar(datos2026.features || [], 2026);
   const cfg = APP.consumo;
 
   const pct = (p, t) => t ? ((p / t) * 100).toFixed(1) + '%' : '0%';
 
-  // ── 2021 ──
-  $('kpi-total-2021').innerText = fmtNum(a21.total);
-  $('kpi-led-2021').innerText   = `${fmtNum(a21.led)} (${pct(a21.led, a21.total)})`;
-  $('kpi-sodio-2021').innerText = `${fmtNum(a21.sodio)} (${pct(a21.sodio, a21.total)})`;
-  $('kpi-otros-2021').innerText = `${fmtNum(a21.otros)} (${pct(a21.otros, a21.total)})`;
-  $('potencia-2021').innerText  = fmtNum(a21.kw, 1) + ' kW';
+  // ── 2024 ──
+  $('kpi-total-2024').innerText = fmtNum(a24.total);
+  $('kpi-led-2024').innerText   = `${fmtNum(a24.led)} (${pct(a24.led, a24.total)})`;
+  $('kpi-sodio-2024').innerText = `${fmtNum(a24.sodio)} (${pct(a24.sodio, a24.total)})`;
+  $('kpi-otros-2024').innerText = `${fmtNum(a24.otros)} (${pct(a24.otros, a24.total)})`;
+  $('potencia-2024').innerText  = fmtNum(a24.kw, 1) + ' kW';
 
   // ── 2026 ──
   $('kpi-total-2026').innerText = fmtNum(a26.total);
@@ -332,9 +332,9 @@ function calcularKPIs() {
   $('potencia-2026').innerText  = fmtNum(a26.kw, 1) + ' kW';
 
   // ── Consumo mensual ──
-  const kwh21 = a21.kw * cfg.horasDiarias * cfg.diasMes;
+  const kwh24 = a24.kw * cfg.horasDiarias * cfg.diasMes;
   const kwh26 = a26.kw * cfg.horasDiarias * cfg.diasMes;
-  $('kwh-2021').innerText = fmtNum(kwh21, 0) + ' kWh';
+  $('kwh-2024').innerText = fmtNum(kwh24, 0) + ' kWh';
   $('kwh-2026').innerText = fmtNum(kwh26, 0) + ' kWh';
 
   // ── Barras proporcionales ──
@@ -345,7 +345,7 @@ function calcularKPIs() {
     set(`bar-sodio-${prefijo}`, (data.sodio / t) * 100);
     set(`bar-otros-${prefijo}`, (data.otros / t) * 100);
   };
-  pintarBarra('2021', a21);
+  pintarBarra('2024', a24);
   pintarBarra('2026', a26);
 
   // ── Resumen para chip colapsado (mobile) ──
@@ -354,7 +354,7 @@ function calcularKPIs() {
     sum.innerHTML = `
       <span class="sum-pill old">
         <span class="dot sm" style="background:#e2f916"></span>
-        2021 · ${fmtNum(a21.total)} · ${pct(a21.led, a21.total)} LED
+        2024 · ${fmtNum(a24.total)} · ${pct(a24.led, a24.total)} LED
       </span>
       <span class="sum-pill new">
         <span class="dot sm" style="background:#22d3ee"></span>
@@ -364,24 +364,24 @@ function calcularKPIs() {
   }
 
   // ── Debug ──
-  const costoAnual21 = kwh21 * cfg.tarifaKwh * 12;
+  const costoAnual24 = kwh24 * cfg.tarifaKwh * 12;
   const costoAnual26 = kwh26 * cfg.tarifaKwh * 12;
 
   window.LUX_DEBUG = {
-    a21, a26, kwh21, kwh26,
-    costoAnual21, costoAnual26,
-    ahorroAnual: costoAnual21 - costoAnual26
+    a24, a26, kwh24, kwh26,
+    costoAnual24, costoAnual26,
+    ahorroAnual: costoAnual24 - costoAnual26
   };
-  console.table({ '2021': a21, '2026': a26 });
+  console.table({ '2024': a24, '2026': a26 });
 }
 
 /* ── Cambio de estilo ─────────────────────────────────────────────── */
 function cambiarEstilo(nuevo) {
   estiloActual = nuevo;
   const estilo = APP.estilosMapa[nuevo];
-  map2021.setStyle(estilo);
+  map2024.setStyle(estilo);
   map2026.setStyle(estilo);
-  map2021.once('styledata', () => reinyectar(map2021, 'lum-2021', 'lum-2021-layer', datos2021, 2021));
+  map2024.once('styledata', () => reinyectar(map2024, 'lum-2024', 'lum-2024-layer', datos2024, 2024));
   map2026.once('styledata', () => reinyectar(map2026, 'lum-2026', 'lum-2026-layer', datos2026, 2026));
 }
 
@@ -429,7 +429,7 @@ function ocultarProgreso() {
 /* Captura un mapa MapLibre manteniendo su estado real (zoom, posición, etc.) */
 function capturarMapa(idMapa) {
   return new Promise((resolve, reject) => {
-    const map = idMapa === 'map-2026' ? map2026 : map2021;
+    const map = idMapa === 'map-2026' ? map2026 : map2024;
     if (!map) return reject(new Error('Mapa no disponible: ' + idMapa));
 
     map.once('render', () => {
@@ -466,7 +466,7 @@ async function generarPDF({ titulo, notas, conKpis, conMapas }) {
   mostrarProgreso('Capturando mapas…');
 
   const canvas2026 = conMapas ? await capturarMapa('map-2026') : null;
-  const canvas2021 = conMapas ? await capturarMapa('map-2021') : null;
+  const canvas2024 = conMapas ? await capturarMapa('map-2024') : null;
 
   mostrarProgreso('Armando PDF…');
 
@@ -490,7 +490,7 @@ async function generarPDF({ titulo, notas, conKpis, conMapas }) {
 
   // ── KPIs ──
   if (conKpis && window.LUX_DEBUG) {
-    const { a21, a26, kwh21, kwh26 } = window.LUX_DEBUG;
+    const { a24, a26, kwh24, kwh26 } = window.LUX_DEBUG;
     const pct = (p, t) => t ? ((p / t) * 100).toFixed(1) + '%' : '0%';
 
     doc.setTextColor(15, 23, 42);
@@ -501,13 +501,13 @@ async function generarPDF({ titulo, notas, conKpis, conMapas }) {
 
     const colW = (W - M * 2) / 3;
     const rows = [
-      ['Métrica', '2021', '2026'],
-      ['Total luminarias', fmtNum(a21.total), fmtNum(a26.total)],
-      ['LED', `${fmtNum(a21.led)} (${pct(a21.led, a21.total)})`, `${fmtNum(a26.led)} (${pct(a26.led, a26.total)})`],
-      ['Sodio / SAP', `${fmtNum(a21.sodio)} (${pct(a21.sodio, a21.total)})`, `${fmtNum(a26.sodio)} (${pct(a26.sodio, a26.total)})`],
-      ['Otros', `${fmtNum(a21.otros)} (${pct(a21.otros, a21.total)})`, `${fmtNum(a26.otros)} (${pct(a26.otros, a26.total)})`],
-      ['Potencia total', fmtNum(a21.kw, 1) + ' kW', fmtNum(a26.kw, 1) + ' kW'],
-      ['Consumo mensual', fmtNum(kwh21, 0) + ' kWh', fmtNum(kwh26, 0) + ' kWh']
+      ['Métrica', '2024', '2026'],
+      ['Total luminarias', fmtNum(a24.total), fmtNum(a26.total)],
+      ['LED', `${fmtNum(a24.led)} (${pct(a24.led, a24.total)})`, `${fmtNum(a26.led)} (${pct(a26.led, a26.total)})`],
+      ['Sodio / SAP', `${fmtNum(a24.sodio)} (${pct(a24.sodio, a24.total)})`, `${fmtNum(a26.sodio)} (${pct(a26.sodio, a26.total)})`],
+      ['Otros', `${fmtNum(a24.otros)} (${pct(a24.otros, a24.total)})`, `${fmtNum(a26.otros)} (${pct(a26.otros, a26.total)})`],
+      ['Potencia total', fmtNum(a24.kw, 1) + ' kW', fmtNum(a26.kw, 1) + ' kW'],
+      ['Consumo mensual', fmtNum(kwh24, 0) + ' kWh', fmtNum(kwh26, 0) + ' kWh']
     ];
 
     doc.setFontSize(8.5);
@@ -534,9 +534,9 @@ async function generarPDF({ titulo, notas, conKpis, conMapas }) {
   }
 
   // ── Mapas (uno debajo del otro) ──
-  if (conMapas && canvas2021 && canvas2026) {
+  if (conMapas && canvas2024 && canvas2026) {
     const mapW = W - M * 2;
-    const ratio = canvas2021.height / canvas2021.width;
+    const ratio = canvas2024.height / canvas2024.width;
     const mapH = mapW * ratio;
 
     if (y + 6 + mapH > H - M - 20) {
@@ -550,13 +550,13 @@ async function generarPDF({ titulo, notas, conKpis, conMapas }) {
     doc.text('Mapa comparativo', M, y);
     y += 5;
 
-    // 2021
+    // 2024
     doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(202, 138, 4);
-    doc.text('2021', M, y);
+    doc.text('2024', M, y);
     y += 2;
-    doc.addImage(canvas2021.toDataURL('image/jpeg', 0.88), 'JPEG', M, y, mapW, mapH);
+    doc.addImage(canvas2024.toDataURL('image/jpeg', 0.88), 'JPEG', M, y, mapW, mapH);
     y += mapH + 6;
 
     // Verificar espacio para el segundo mapa
