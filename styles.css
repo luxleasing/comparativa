@@ -247,11 +247,11 @@ html.dark #comparison-container { background: #0f172a; }
   width: 100%; height: 100%;
 }
 #map-2026 { z-index: 1; }
-#map-2021 { z-index: 2; }
-#map-2021,
-#map-2021 .maplibregl-canvas-container,
-#map-2021 .maplibregl-canvas,
-#map-2021 .maplibregl-control-container {
+#map-2024 { z-index: 2; }
+#map-2024,
+#map-2024 .maplibregl-canvas-container,
+#map-2024 .maplibregl-canvas,
+#map-2024 .maplibregl-control-container {
   pointer-events: none !important;
 }
 
@@ -348,7 +348,7 @@ html.dark #comparison-container { background: #0f172a; }
 }
 .year-dot { width: 8px; height: 8px; border-radius: 50%; }
 
-/* ── VERTICAL (desktop / landscape): 2021 izquierda, 2026 derecha ── */
+/* ── VERTICAL (desktop / landscape): 2024 izquierda, 2026 derecha ── */
 #comparison-container.orientation-v .year-badge-top {
   top: 14px;
   left: 14px;
@@ -362,7 +362,7 @@ html.dark #comparison-container { background: #0f172a; }
   bottom: auto;
 }
 
-/* ── HORIZONTAL (mobile / portrait): 2021 arriba, 2026 abajo ── */
+/* ── HORIZONTAL (mobile / portrait): 2024 arriba, 2026 abajo ── */
 #comparison-container.orientation-h .year-badge-top {
   top: 14px;
   left: 14px;
