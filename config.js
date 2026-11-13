@@ -7,7 +7,7 @@ window.LUX_CONFIG = {
 
   fuentes: {
     luminarias_2024: './luminarias_rivadavia_2024.geojson',
-    luminarias_2026: './luminarias_rivadavia_2026_4326_2.geojson'
+    luminarias_2026: './luminarias_rivadavia_2026_4326_3.geojson'
   },
 
   campos: {
